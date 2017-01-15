@@ -11,9 +11,9 @@ public class screen_snow_effect : MonoBehaviour {
 	[SerializeField]
 	Matrix4x4 camera_to_world;
 	[Range(0,1)]
-	float bottom_threshold;
+	float bottom_threshold = 0;
 	[Range(0,1)]
-	float top_threshold;
+	float top_threshold = 1;
 	[SerializeField]
 	Color snow_color = Color.white;
 

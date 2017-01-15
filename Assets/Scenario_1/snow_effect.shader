@@ -65,7 +65,9 @@
 				DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, i.uv), _depth, c_normal);
 				w_normal = mul((float3x3)_CamToWorld, c_normal);
 
-				return half4(w_normal, 1);
+				half snowAmount = w_normal.g;
+				half scale = (_BottomThreshold + 1 - _TopThreshold) / 1 + 1;
+				snowAmount = saturate((snowAmount - _BottomThreshold) * scale);
 			}
 			ENDCG
 		}
