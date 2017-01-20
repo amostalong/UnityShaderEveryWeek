@@ -7,11 +7,11 @@ public class screen_snow_effect : MonoBehaviour {
 	[SerializeField]
 	Texture2D snow_texture;
 	[SerializeField]
-	float snow_scale;
+	float snow_scale  = 0.1f;
 	[SerializeField]
 	Matrix4x4 camera_to_world;
 	[Range(0,1)]
-	float bottom_threshold = 0;
+	public float bottom_threshold = 0f;
 	[Range(0,1)]
 	float top_threshold = 1;
 	[SerializeField]
@@ -30,6 +30,7 @@ public class screen_snow_effect : MonoBehaviour {
 	void OnRenderImage(RenderTexture src, RenderTexture dst)
 	{
 		camera_to_world = Camera.main.cameraToWorldMatrix;
+		var project_to_camera = (Camera.main.worldToCameraMatrix * Camera.main.projectionMatrix).inverse;
 
 		material.SetTexture ("_SnowTex", snow_texture);
 		material.SetFloat ("_SnowTexScale", snow_scale);
@@ -37,6 +38,7 @@ public class screen_snow_effect : MonoBehaviour {
 		material.SetFloat ("BottomThreshod", bottom_threshold);
 		material.SetFloat ("_TopThreshod", top_threshold);
 		material.SetColor ("_SnowColor", snow_color);
+		material.SetMatrix ("_ProecjtToCam", project_to_camera);
 
 		Graphics.Blit (src, dst, material);
 	}
