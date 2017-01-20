@@ -1,0 +1,28 @@
+坑：
+1.
+Unity中不管是用DecodDepthNormal还是用SAMPLE_DEPTH_TEXTURE获得的Depth都是简单的纹理中的深度值，但是实际使用中通常需要把他进行转换。Unity提供了两个函数：
+Linear01Depth与LinearEyeDepth.
+第一个函数就是NDC空间中的深度值，是从0到1的一个范围。第二个是Eye 空间中的深度值。
+在UnityCg.cginc中展开的表示为：
+
+// Z buffer to linear 0..1 depth
+inline float Linear01Depth( float z )
+{
+     return 1.0 / (_ZBufferParams.x * z + _ZBufferParams.y);
+}
+
+// Z buffer to linear depth
+inline float LinearEyeDepth( float z )
+{
+     return 1.0 / (_ZBufferParams.z * z + _ZBufferParams.w);
+}
+
+而根据投影矩阵表示的Zview = 1 / ( ( (far - near) / (far * near) ) * d + 1 /near)  Unity中eye中间中 相机正对的方向为负
+那么对比一下应该得到 _ZBufferParams.z =  ( (far - near) / (far * near) ) _ZBufferParams.w = 1 /near
+
+同时 Z01 =1 / ( ( (far - near) / ( near) ) * d + far * /near) 就可以推出
+_ZBufferParams.x  = (far - near) / ( near) _ZBufferParams.y = (far * near) 
+
+2.return的类型需要自己去转换 比如 fixed4 frag(){.... return fixed4();} 如果不转换貌似结果会和预期不符合。不要求精度情况下 fixed4 最快，然后是half4, float4.
+
+3.后期特效中 MainTex的UV 其实就是 映射到[0,1]范围的NDC的x和y的值，要使用时我们需要映射到[-1,1]所以 需要做 (i.uv * 2 -1),同时从depth texturen中获得的纹理值在linaer01Depth之后同样需要做 d * 2 - 1的映射。 这样就获得了NDC，再用逆wvp矩阵就可的到d 再除以 d.w的到world pos
