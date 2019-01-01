@@ -13,7 +13,7 @@ public class screen_snow_effect : MonoBehaviour {
 	[Range(0,1)]
 	public float bottom_threshold = 0f;
 	[Range(0,1)]
-	float top_threshold = 1;
+	public float top_threshold = 1;
 	[SerializeField]
 	Color snow_color = Color.white;
 
@@ -35,8 +35,8 @@ public class screen_snow_effect : MonoBehaviour {
 		material.SetTexture ("_SnowTex", snow_texture);
 		material.SetFloat ("_SnowTexScale", snow_scale);
 		material.SetMatrix ("_CamToWorld", camera_to_world);
-		material.SetFloat ("BottomThreshod", bottom_threshold);
-		material.SetFloat ("_TopThreshod", top_threshold);
+		material.SetFloat ("_BottomThreshold", bottom_threshold);
+		material.SetFloat ("_TopThreshold", top_threshold);
 		material.SetColor ("_SnowColor", snow_color);
 		material.SetMatrix ("_ProecjtToCam", project_to_camera);
 

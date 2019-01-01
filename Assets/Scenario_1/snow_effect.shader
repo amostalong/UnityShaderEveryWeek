@@ -72,7 +72,7 @@
 				half snowAmount = normal.g;
 				half scale = (_BottomThreshold + 1 - _TopThreshold) / 1 + 1;
 				snowAmount = saturate((snowAmount - _BottomThreshold) * scale);
-
+                snowAmount = clamp(snowAmount,0,0.8);
 //				float2 p11_22 = float2(unity_CameraProjection._11, unity_CameraProjection._22);
 //				float3 vpos = float3( (i.uv * 2 - 1) / p11_22, -1) * _depth;
 //				float4 wpos = mul(_CamToWorld, float4(vpos, 1));
