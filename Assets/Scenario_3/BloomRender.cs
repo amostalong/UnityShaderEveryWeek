@@ -27,7 +27,7 @@ public class BloomRender : MonoBehaviour {
 			foreach(var render in renders)
 			{
 				Debug.Log("Draw Render:" + render.gameObject.name + "," + bt.bloomMaterial.name);
-				bloomBuff.DrawRenderer(render, bt.bloomMaterial);
+				bloomBuff.DrawRenderer(render, bt.bloomMaterial, 0, 1);
 			}
 		}
 

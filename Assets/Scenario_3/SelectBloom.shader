@@ -68,8 +68,7 @@
 				// sample the texture
 				fixed4 col = tex2D(_MainTex, input.uv);
 
-				return bloom / 10 + col;
-				
+				return bloom / 2 + col;
 			}
 			ENDCG
 		}
