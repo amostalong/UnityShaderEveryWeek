@@ -3,17 +3,21 @@
 	Properties
 	{
 		_RampTex ("Ramp Texture", 2D) = "White"{}
-		_DistortMul("Distort Mul", float) = 1.0
+		_RampBump ("Ramp Bump", 2D) = "White"{}
+
 		_BumpTex("Bump Texture", 2D) = "white"{}
-		_EdgeThickness("Silouette Dropoff Rate", float) = 1.0
+		_EdgeThickness("Edge Thickness", float) = 1.0
 		_AlphaMul("Base Alpha Mu", float) = 1.0
 		_EdgeAdd("Edge Color Additivie", float) = 1.0
+		_Opacity("Opacity", float) = 0.5
+		_DistortMul("Distort Mul", float) = 1.0
 	}
 	SubShader
 	{
 		Tags { "RenderType"="Transparent" }
 		LOD 100
-		Cull Back
+		Cull back
+		Blend SrcAlpha OneMinusSrcAlpha
         GrabPass
         {
             "_GrabTexture"
@@ -49,12 +53,15 @@
 			sampler2D _GrabTexture;
 			sampler2D _BumpTex;
 			sampler2D _RampTex;
+			sampler2D _RampBump;
 
 			float _DistortMul;
 			float4 _MainTex_ST;
 			float _EdgeThickness;
 			float _AlphaMul;
 			float _EdgeAdd;
+			float _BumpAdd;
+			float _Opacity;
 
 			v2f vert (appdata v)
 			{
@@ -75,14 +82,25 @@
 				i.grabPos.y += bump.g * _DistortMul;
 				float3 grabColor = tex2Dproj(_GrabTexture, i.grabPos).rgb;
 
-				float edgeFactor = abs(dot(i.viewDir, i.normal));
+				float edgeFactor = saturate(dot(i.viewDir, i.normal));
 				float oneMinusEdge = 1.0 - edgeFactor;
-				float3 edgeColor = tex2D(_RampTex, float2(oneMinusEdge, 0.5)).rgb * _EdgeAdd;
+				float3 edgeColor = tex2D(_RampTex, float2(oneMinusEdge, 0.5));
 
-				float opacity = min(1.0, _AlphaMul / edgeFactor);
-				opacity = pow(opacity, _EdgeThickness);
+				float edgeOpacity = pow(oneMinusEdge, _EdgeThickness);
 
-				float3 finalColor = grabColor * (1-opacity) + edgeColor * opacity;
+				float3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
+				float3 normal = bump;
+				float lightFactor = clamp(dot(normal, lightDir), 0.3, 1);
+				float3 rampBump = tex2D(_RampBump, float2(lightFactor, 0.5));
+
+
+
+				float3 finalGrab = grabColor * (1 - _Opacity);
+				float3 finalEdge = edgeColor *  edgeOpacity * _Opacity;
+				float3 viewColor = rampBump * _Opacity;
+
+				float3 finalColor = finalGrab + finalEdge + viewColor;
+				//return float4(edgeOpacity,0,0, 1);
 				return float4(finalColor, 1);
 			}
 			ENDCG
