@@ -48,6 +48,7 @@
                 return o;
             }
 
+            //方法2 通过投影矩阵来求camPos， 再利用相机的矩阵来求worldPos
             float4 GetWorldPositionFromDepthValue(float2 uv, float linearDepth) 
             {
                 //y 是相机naer z是far w是1/far x是1或者-1
@@ -58,6 +59,9 @@
                 // 这里求的height和width是坐标点所在的视锥体截面（与摄像机方向垂直）的高和宽，并且
                 // 假设相机投影区域的宽高比和屏幕一致。
                 float height = 2 * camPosZ / unity_CameraProjection._m11;
+
+
+                //x is width of screen pixel, y is height of screen pixel, z is 1 + 1 / width, 
                 float width = _ScreenParams.x / _ScreenParams.y * height;
 
                 float camPosX = width * uv.x - width / 2;
@@ -65,6 +69,19 @@
                 float4 camPos = float4(camPosX, camPosY, camPosZ, 1.0);
 
                 return mul(unity_CameraToWorld, camPos);
+            }
+
+            //方法1 因为后处理时uv的值可以直接映射成ndc的yx, z可以直接从depth texture上面获得
+            float4 GetWorldPosFromNDC(float2 uv, float z)
+            {
+                //重建ndc
+                float4 ndc = float4(uv.x * 2 - 1, uv.y * 2 - 1, z, 1);
+                // ndc = worldPos * (viewMatrix * projectMatric)
+
+                float4 W = mul(_CurrentInverseVP, ndc);
+                float4 wp = W / W.w; 
+
+                return wp;
             }
 
             fixed4 frag (v2f i) : SV_Target
@@ -75,16 +92,14 @@
 
                 //方法1
                 //后处理时uv直接就是ndc坐标(从0 - 1,映射到-1 - 1)
-                float4 ndc = float4(i.uv.x * 2 - 1, i.uv.y * 2 - 1, z, 1);
-                float4 W = mul(_CurrentInverseVP, ndc);
-                float4 wp = W / W.w;
-                float3 worldPos = wp.xyz;
+                float3 worldPos = GetWorldPosFromNDC(i.uv, z) .xyz;
 
-                //方法2
+                //方法2 
+                //利用投影矩阵逆向推出camPos
                 //float3 worldPos = GetWorldPositionFromDepthValue(i.uv, d1).xyz;
-                //return float4(worldPos / 25 ,1);
 
-                //return fixed4(d,d,d,1);
+
+                //忽视y
                 worldPos.y = _targetPos.y;
                 float dis = distance(worldPos.xyz, _targetPos);
 
