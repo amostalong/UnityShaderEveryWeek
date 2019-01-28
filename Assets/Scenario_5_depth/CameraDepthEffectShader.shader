@@ -28,7 +28,7 @@
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
-                float4 worldDirection : TEXCOORD1;
+                //float4 worldDirection : TEXCOORD1;
             };
 
             sampler2D _MainTex;
@@ -43,12 +43,12 @@
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
-                float4 clip = float4(o.vertex.xy, 0.0, 1.0);
-                o.worldDirection.xyz = normalize(mul(_CurrentInverseVP, clip) - _WorldSpaceCameraPos);
+                //float4 clip = float4(o.vertex.xy, 1.0, 1.0);
+                //o.worldDirection.xyz = (mul(_CurrentInverseVP, clip) - _WorldSpaceCameraPos);
                 return o;
             }
 
-            float4 GetWorldPositionFromDepthValue(float2 uv, float linearDepth, float4 dir, float eyeDepth) 
+            float4 GetWorldPositionFromDepthValue(float2 uv, float linearDepth) 
             {
                 //y 是相机naer z是far w是1/far x是1或者-1
                 float camPosZ = _ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * linearDepth;
@@ -64,7 +64,6 @@
                 float camPosY = height * uv.y - height / 2;
                 float4 camPos = float4(camPosX, camPosY, camPosZ, 1.0);
 
-                //return eyeDepth * dir + camPos;
                 return mul(unity_CameraToWorld, camPos);
             }
 
@@ -73,20 +72,16 @@
                 float z = UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, i.uv));
                 float d1 = Linear01Depth(z);
                 float d = LinearEyeDepth(z);
+
+                //方法1
                 //后处理时uv直接就是ndc坐标(从0 - 1,映射到-1 - 1)
-                //float4 ndc = float4(i.uv.x * 2 - 1, i.uv.y * 2 - 1, z, 1);
-                //float4 v = mul(unity_CameraInvProjection, ndc); 
-                //float4 w = mul(UNITY_MATRIX_I_V, v);
-                //float4 W = mul(_CurrentInverseVP, ndc);
-                //float3 worldPos = i.worldDirection * d + _WorldSpaceCameraPos;
-                //float4 worldPos  = W / W.w;
-                //float dis = length(worldPos.xyz);
+                float4 ndc = float4(i.uv.x * 2 - 1, i.uv.y * 2 - 1, z, 1);
+                float4 W = mul(_CurrentInverseVP, ndc);
+                float4 wp = W / W.w;
+                float3 worldPos = wp.xyz;
 
-                //float3 worldPos2 = worldPos.xyz / dis;
-                //worldPos2 = worldPos2 * 0.5 + 0.5;
-
-                float3 worldPos = GetWorldPositionFromDepthValue(i.uv, d1, i.worldDirection, d).xyz;
-                //return float4(d1,d1,d1,1);
+                //方法2
+                //float3 worldPos = GetWorldPositionFromDepthValue(i.uv, d1).xyz;
                 //return float4(worldPos / 25 ,1);
 
                 //return fixed4(d,d,d,1);

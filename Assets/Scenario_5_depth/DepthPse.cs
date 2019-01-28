@@ -28,7 +28,10 @@ public class DepthPse : MonoBehaviour
 
 	void OnRenderImage (RenderTexture source, RenderTexture destination) {
 
-		VPMatrix = _camera.projectionMatrix * _camera.worldToCameraMatrix;
+        //需要调用GL.GetGpuProjectionMatrix 去得到正确的投影坐标
+        Matrix4x4 projMat = GL.GetGPUProjectionMatrix( _camera.projectionMatrix, false );
+
+		VPMatrix = projMat * _camera.worldToCameraMatrix;
         //Debug.Log(_camera.projectionMatrix);
 		Matrix4x4 currentInverseVP = VPMatrix.inverse;
 		material.SetMatrix("_CurrentInverseVP", currentInverseVP);
