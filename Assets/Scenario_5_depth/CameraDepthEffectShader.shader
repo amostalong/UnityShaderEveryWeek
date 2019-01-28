@@ -28,7 +28,7 @@
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
-                float3 worldDirection : TEXCOORD1;
+                float4 worldDirection : TEXCOORD1;
             };
 
             sampler2D _MainTex;
@@ -44,12 +44,13 @@
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
                 float4 clip = float4(o.vertex.xy, 0.0, 1.0);
-                o.worldDirection = normalize(mul(_CurrentInverseVP, clip) - _WorldSpaceCameraPos);
+                o.worldDirection.xyz = normalize(mul(_CurrentInverseVP, clip) - _WorldSpaceCameraPos);
                 return o;
             }
 
-            float4 GetWorldPositionFromDepthValue( float2 uv, float linearDepth ) 
+            float4 GetWorldPositionFromDepthValue(float2 uv, float linearDepth, float4 dir, float eyeDepth) 
             {
+                //y 是相机naer z是far w是1/far x是1或者-1
                 float camPosZ = _ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * linearDepth;
 
                 // unity_CameraProjection._m11 = near / t，其中t是视锥体near平面的高度的一半。
@@ -62,6 +63,8 @@
                 float camPosX = width * uv.x - width / 2;
                 float camPosY = height * uv.y - height / 2;
                 float4 camPos = float4(camPosX, camPosY, camPosZ, 1.0);
+
+                //return eyeDepth * dir + camPos;
                 return mul(unity_CameraToWorld, camPos);
             }
 
@@ -82,11 +85,12 @@
                 //float3 worldPos2 = worldPos.xyz / dis;
                 //worldPos2 = worldPos2 * 0.5 + 0.5;
 
-                float3 worldPos = GetWorldPositionFromDepthValue(i.uv, d1).xyz;
+                float3 worldPos = GetWorldPositionFromDepthValue(i.uv, d1, i.worldDirection, d).xyz;
                 //return float4(d1,d1,d1,1);
                 //return float4(worldPos / 25 ,1);
 
                 //return fixed4(d,d,d,1);
+                worldPos.y = _targetPos.y;
                 float dis = distance(worldPos.xyz, _targetPos);
 
                 float p = step(range, dis);

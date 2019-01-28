@@ -29,7 +29,7 @@ public class DepthPse : MonoBehaviour
 	void OnRenderImage (RenderTexture source, RenderTexture destination) {
 
 		VPMatrix = _camera.projectionMatrix * _camera.worldToCameraMatrix;
-        Debug.Log(_camera.projectionMatrix);
+        //Debug.Log(_camera.projectionMatrix);
 		Matrix4x4 currentInverseVP = VPMatrix.inverse;
 		material.SetMatrix("_CurrentInverseVP", currentInverseVP);
         vec.x = target.position.x;
