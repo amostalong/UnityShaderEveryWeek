@@ -79,9 +79,6 @@ v2f vert_layers(appdata_base v)
     Occlusion += 0.5; 
     half3 SHL = lerp ( _RimColor * SH, SH, Occlusion);
     half Fresnel = 1 - max(0,dot(o.worldNormal, worldView));//pow (1-max(0,dot(N,V)),2.2);
-    half RimLight = Fresnel * Occlusion; //AO的深度剔除 很重要
-    RimLight *= RimLight; //fresnel~pow简化版
-    RimLight *= SHL; //加上环境光因数
 
     half3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
     half NoL =dot(lightDir, o.worldNormal);
