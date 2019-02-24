@@ -84,7 +84,7 @@ v2f vert_layers(appdata_base v)
     RimLight *= SHL; //加上环境光因数
 
     half3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
-    half NoL =dot(lightDir,normal);
+    half NoL =dot(lightDir, o.worldNormal);
     half3 DirLight = NoL * _LightColor0.rgb;
     
     o.vertLight = Fresnel * SHL * _RimPower * Occlusion + DirLight * 0.3; 
