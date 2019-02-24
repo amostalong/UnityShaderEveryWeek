@@ -51,9 +51,9 @@ fixed4 frag_base(v2f i) : SV_Target
     fixed3 albedo = tex2D(_MainTex, i.uv.xy).rgb * _Color;
     fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo;
     fixed3 diffuse = _LightColor0.rgb * albedo * saturate(dot(worldNormal, worldLight)); //漫反射 基于 发现和光照方向的点乘 
-    fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(saturate(dot(worldNormal, worldHalf)), _Shininess); //Specular = 直射光*pow(max(cosθ,0),高光的参数) Blinn
+    //fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(saturate(dot(worldNormal, worldHalf)), _Shininess); //Specular = 直射光*pow(max(cosθ,0),高光的参数) Blinn
 
-    fixed3 color = ambient + diffuse + specular;
+    fixed3 color = ambient + diffuse; //+ specular;
     
     return fixed4(color, 1.0);
 }
@@ -76,15 +76,18 @@ v2f vert_layers(appdata_base v)
     float3 normal = normalize(mul(UNITY_MATRIX_MV, float4(v.normal,0)).xyz);
     half3 SH = saturate(normal.y * 0.25 + 0.35) ;
     half Occlusion = FURSTEP * FURSTEP; //伽马转线性最精简版
-    Occlusion += 0.05 ;
+    Occlusion += 0.5; 
     half3 SHL = lerp ( _RimColor * SH, SH, Occlusion);
     half Fresnel = 1 - max(0,dot(o.worldNormal, worldView));//pow (1-max(0,dot(N,V)),2.2);
     half RimLight = Fresnel * Occlusion; //AO的深度剔除 很重要
-    //RimLight *= RimLight; //fresnel~pow简化版
-    RimLight *= SH; //加上环境光因数
-    SHL += RimLight * _RimColor;
+    RimLight *= RimLight; //fresnel~pow简化版
+    RimLight *= SHL; //加上环境光因数
 
-    o.vertLight = SHL;
+    half3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
+    half NoL =dot(lightDir,normal);
+    half3 DirLight = NoL * _LightColor0.rgb;
+    
+    o.vertLight = Fresnel * SHL * _RimPower * Occlusion + DirLight * 0.3; 
     return o;
 }
 
